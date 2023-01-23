@@ -25,20 +25,6 @@ namespace Towers
         private float _biggestDistance;
         private bool _shootRunning;
 
-
-        private void Start()
-        {
-            StartCoroutine(nameof(Shoot));
-        }
-
-        private void Update()
-        {
-            if (_shootRunning != true)
-            {
-                StartCoroutine(nameof(Shoot));
-            }
-        }
-
         private IEnumerator Shoot()
         {
             _shootRunning = true;
@@ -49,6 +35,19 @@ namespace Towers
             enemy.GetComponent<Damageable>().TakeDamage(damage);
             yield return new WaitForSeconds(fireRate);
             _shootRunning = false;
+        }
+
+        private void Start()
+        {
+            StartCoroutine("Shoot");
+        }
+
+        private void Update()
+        {
+            if (_shootRunning != true)
+            {
+                StartCoroutine("Shoot");
+            }
         }
 
 
