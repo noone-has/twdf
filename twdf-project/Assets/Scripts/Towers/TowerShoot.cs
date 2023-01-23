@@ -1,134 +1,154 @@
 using System.Collections;
-using System.Collections.Generic;
+using System.IO;
+using Enemies;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class TowerShoot : MonoBehaviour
+namespace Towers
 {
+    public class TowerShoot : MonoBehaviour
+    {
 
-    [SerializeField] float Damage;
-    [SerializeField] float Range;
-    [SerializeField] float fireRate;
-    GameObject[] enemies;
-    float distance;
-    float smallestDistance;
-    GameObject enemyToShoot;
-    float health;
-    float lowestHealth;
-    float highestHealth;
-    float biggestDistance;
-    GameObject enemy = null;
+        [FormerlySerializedAs("Damage")] [SerializeField]
+        private float damage;
+        [FormerlySerializedAs("Range")] [SerializeField]
+        private float range;
+        [SerializeField] private float fireRate;
+        private float _armor; // temporary fix because there were too many errors because of this
+        private GameObject[] _enemies;
+        private float _distance;
+        private float _smallestDistance;
+        private GameObject _enemyToShoot;
+        private float _health;
+        private float _lowestHealth;
+        private float _highestHealth;
+        private float _biggestDistance;
+        private bool _shootRunning;
 
-    void Start()
-    {
-        StartCoroutine("Shoot");
-    }
 
-    void Update()
-    {
-        
-    }
+        private void Start()
+        {
+            StartCoroutine(nameof(Shoot));
+        }
 
-    IEnumerator Shoot()
-    {
-        GameObject enemy = findHighestHPEnemy(0); //temporary, need to make something that picks the function according to the mode the tower is on
-        Debug.Log(enemy);
-        enemy.GetComponent<Damageable>().TakeDamage(Damage);
-        yield return new WaitForSeconds(fireRate);
-        StartCoroutine("Shoot");
-    }
+        private void Update()
+        {
+            if (_shootRunning != true)
+            {
+                StartCoroutine(nameof(Shoot));
+            }
+        }
 
-    GameObject findClosestEnemy(float smallestDistance)
-    {
-        enemyToShoot = null;
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach(GameObject enemy in enemies)
+        private IEnumerator Shoot()
         {
-            distance = Vector2.Distance(enemy.transform.position, this.transform.position);
-            if(distance < smallestDistance && distance <= Range)
-            {
-                smallestDistance = distance;
-                enemyToShoot = enemy;
-            }
+            _shootRunning = true;
+            GameObject
+                enemy = FindEnemy("findClosestEnemy",
+                    0); //temporary, need to make something that picks the function according to the mode the tower is on
+            Debug.Log(enemy);
+            enemy.GetComponent<Damageable>().TakeDamage(damage);
+            yield return new WaitForSeconds(fireRate);
+            _shootRunning = false;
         }
-        return enemyToShoot;
-    }
-    GameObject findFurthestEnemy(float biggestDistance)
-    {
-        enemyToShoot = null;
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach(GameObject enemy in enemies)
+
+
+        private GameObject FindEnemy(string option, float arg = 1)
         {
-            distance = Vector2.Distance(enemy.transform.position, this.transform.position);
-            if(distance > biggestDistance && distance <= Range)
+
+            _enemyToShoot = null;
+            _enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+            switch (option)
             {
-                biggestDistance = distance;
-                enemyToShoot = enemy;
+                case "findClosestEnemy":
+                    foreach (var enemy in _enemies)
+                    {
+                        _distance = Vector2.Distance(enemy.transform.position, this.transform.position);
+                        if (_distance < _smallestDistance && _distance <= range)
+                        {
+                            _smallestDistance = _distance;
+                            _enemyToShoot = enemy;
+                        }
+
+                    }
+
+                    return _enemyToShoot;
+
+                case "findFurthestEnemy":
+                    foreach (var enemy in _enemies)
+                    {
+                        _distance = Vector2.Distance(enemy.transform.position, this.transform.position);
+                        if (_distance > _biggestDistance && _distance <= range)
+                        {
+                            _biggestDistance = _distance;
+                            _enemyToShoot = enemy;
+                        }
+
+                    }
+
+                    return _enemyToShoot;
+
+                case "findLowestHPEnemy":
+                    foreach (var enemy in _enemies)
+                    {
+                        _distance = Vector2.Distance(enemy.transform.position, this.transform.position);
+                        if (_distance <= range && _health < _lowestHealth)
+                        {
+                            _lowestHealth = _health;
+                            _enemyToShoot = enemy;
+                        }
+
+                    }
+
+                    return _enemyToShoot;
+
+                case "findHighestHPEnemy":
+                    foreach (var enemy in _enemies)
+                    {
+                        _distance = Vector2.Distance(enemy.transform.position, this.transform.position);
+                        if (_distance <= range && _health < _lowestHealth)
+                        {
+                            _lowestHealth = _health;
+                            _enemyToShoot = enemy;
+                        }
+
+                    }
+
+                    return _enemyToShoot;
+
+                case "findLowestArmorEnemy":
+                    float lowestArmor = arg;
+                    foreach (var enemy in _enemies)
+                    {
+                        _distance = Vector2.Distance(enemy.transform.position, this.transform.position);
+                        _armor = enemy.GetComponent<Damageable>().GetArmor();
+                        if (_distance <= range && _armor < lowestArmor)
+                        {
+                            lowestArmor = _armor;
+                            _enemyToShoot = enemy;
+                        }
+
+                    }
+
+                    return _enemyToShoot;
+
+                case "findHighestArmorEnemy":
+                    float highestArmor = arg;
+                    foreach (var enemy in _enemies)
+                    {
+                        _distance = Vector2.Distance(enemy.transform.position, this.transform.position);
+                        _armor = enemy.GetComponent<Damageable>().GetArmor();
+                        if (_distance <= range && _armor > highestArmor)
+                        {
+                            highestArmor = _armor;
+                            _enemyToShoot = enemy;
+                        }
+                    }
+
+                    return _enemyToShoot;
             }
+
+            throw new InvalidDataException();
         }
-        return enemyToShoot;
-    }
-    GameObject findLowestHPEnemy(float lowestHealth)
-    {
-        enemyToShoot = null;
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach(GameObject enemy in enemies)
-        {
-            distance = Vector2.Distance(enemy.transform.position, this.transform.position);
-            health = enemy.GetComponent<Damageable>().getHealth();
-            if(distance <= Range && health < lowestHealth)
-            {
-                lowestHealth = health;
-                enemyToShoot = enemy;
-            }
-        }
-        return enemyToShoot;
-    }
-    GameObject findHighestHPEnemy(float highestHealth)
-    {
-        enemyToShoot = null;
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach(GameObject enemy in enemies)
-        {
-            distance = Vector2.Distance(enemy.transform.position, this.transform.position);
-            health = enemy.GetComponent<Damageable>().getHealth();
-            if(distance <= Range && health > highestHealth)
-            {
-                highestHealth = health;
-                enemyToShoot = enemy;
-            }
-        }
-        return enemyToShoot;
-    }
-    GameObject findLowestArmorEnemy(float lowestArmor)
-    {
-        enemyToShoot = null;
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach(GameObject enemy in enemies)
-        {
-            distance = Vector2.Distance(enemy.transform.position, this.transform.position);
-            armor = enemy.GetComponent<Damageable>().getArmor();
-            if(distance <= Range && armor < lowestArmor)
-            {
-                lowestArmor = armor;
-                enemyToShoot = enemy;
-            }
-        }
-        return enemyToShoot;
-    }
-        GameObject findHighestArmorEnemy(float highestArmor)
-    {
-        enemyToShoot = null;
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach(GameObject enemy in enemies)
-        {
-            distance = Vector2.Distance(enemy.transform.position, this.transform.position);
-            armor = enemy.GetComponent<Damageable>().getArmor();
-            if(distance <= Range && armor > highestArmor)
-            {
-                highestArmor = armor;
-                enemyToShoot = enemy;
-            }
-        }
-        return enemyToShoot;
     }
 }

@@ -1,31 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class Damageable : MonoBehaviour
+namespace Enemies
 {
-    [SerializeField] float Health;
-    [SerializeField] float Armor;
+    public class Damageable : MonoBehaviour
+    {
+        [FormerlySerializedAs("Health")] [SerializeField]
+        private float health;
+        [FormerlySerializedAs("Armor")] [SerializeField]
+        private float armor;
 
-    public float getHealth()
-    {
-        return Health;
-    }
-    public float getArmor()
-    {
-        return Armor;
-    }
-
-    public void TakeDamage(float Damage)
-    {
-        Health -= Damage / Armor;
-        if(Health <= 0)
+        public float GetHealth()
         {
-            Die();
+            return health;
         }
-    }
-    void Die()
-    {
-        Destroy(gameObject);
+        public float GetArmor()
+        {
+            return armor;
+        }
+
+        public void TakeDamage(float damage)
+        {
+            health -= damage / armor;
+            if(health <= 0)
+            {
+                Die();
+            }
+        }
+
+        private void Die()
+        {
+            Destroy(gameObject);
+        }
     }
 }
