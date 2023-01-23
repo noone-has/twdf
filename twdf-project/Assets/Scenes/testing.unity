@@ -537,7 +537,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Damage: 10
   Range: 50
-  fireRate: 2
+  fireRate: 0.2
 --- !u!4 &652652788
 Transform:
   m_ObjectHideFlags: 0
